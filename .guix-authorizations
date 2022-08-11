@@ -1,0 +1,8 @@
+;; This is the list of OpenPGP keys currently authorized to sign commits in
+;; this repository.
+
+(authorizations
+  (version 0)
+
+  (("A933 28AB EBC8 9D2A 5EF3  DCD3 029E 6E6C 82FC 4503"
+    (name "michaeldelago"))))

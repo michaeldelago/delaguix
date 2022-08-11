@@ -1,4 +1,4 @@
-(define-module (statusbar)
+(define-module (delaguix packages statusbar)
   #:use-module (guix packages)
   #:use-module (guix gexp)
   #:use-module (guix git-download)
@@ -43,4 +43,3 @@
                (string-append (assoc-ref outputs "out") "/bin/statusbar")
                outputs
                #:entry-program '((statusbar:print-status) 0)))))))))
-sbcl-statusbar

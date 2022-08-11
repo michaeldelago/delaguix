@@ -20,7 +20,7 @@
               (method git-fetch)
               (uri (git-reference
                 (url "https://github.com/michaeldelago/statusbar/")
-                (commit "guix")))
+                (commit version)))
               (sha256
                 (base32
                   "0x9pxndfaibfsfdhx2108c2dvscpvix1jyzdc480adjbhj5qmbcc"))))

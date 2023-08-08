@@ -40,7 +40,7 @@
 (define-public azerothcore-wotlk
   (package
     (name "azerothcore-wotlk")
-    (version "9.230806")
+    (version "9.230808")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -51,7 +51,7 @@
                     (commit (string-append "v" version))))
               (sha256
                (base32
-                "01h0jhiv1mqxq1gnvvpd3k5pclz6finxi3kg7ws16nixjdlycxwg"))
+                "1j09hsyw9grzn50rj0i0zam0dql3mkxvfj9n7lhw5mn1wmnf4kgy"))
               (file-name (git-file-name name version))))
     (build-system cmake-build-system)
     (outputs '("out"))

@@ -38,91 +38,87 @@
              (rename-file src dest))) sources destinations)))
 
 (define-public azerothcore-wotlk
-  (let ((commit "0ebb1969cbe0c6a1264ca0862514602b3e123747")
-        (revision "1"))
-    (package
-      (name "azerothcore-wotlk")
-      (version (git-version "master" revision commit))
-      (source (origin
-                (method git-fetch)
-                (uri (git-reference
-                      (url "https://github.com/azerothcore/azerothcore-wotlk")
-                      (commit commit)))
-                (sha256
-                 (base32
-                  "0qhc7hnfrx0jn3a50rvkikhxyzb65hxh2gpvi62rx6wsqr1i908v"))
-                (file-name (git-file-name name version))))
-      (build-system cmake-build-system)
-      (outputs '("out"))
-      (propagated-inputs (list mysql wowgaming-client-data))
-      (native-inputs `(("git" ,git)
-                       ("lbzip2" ,lbzip2)
-                       ("boost" ,boost)
-                       ("readline" ,readline)
-                       ("openssl-3.0" ,openssl-3.0)
-                       ("ncurses" ,ncurses)
-                       ("clang" ,clang)
-                       ("libtool" ,libtool)
-                       ("zlib" ,zlib)
-                       ("gcc-toolchain" ,gcc-toolchain)
-                       ("glibc-locales" ,glibc-locales)
-                       ("python-wrapper" ,python-wrapper)))
-      (arguments
-       `(#:tests? #f
-         #:configure-flags (list "-DWITH_WARNINGS=1"
-                                 ;; Tools don't need to be built since
-                                 "-DTOOLS_BUILD=none"
-                                 "-DSCRIPTS=static"
-                                 "-DMODULES=dynamic"
-                                 "-DCMAKE_C_COMPILER=clang"
-                                 "-DCMAKE_CXX_COMPILER=clang++"
-                                 (string-append "-DMYSQL_CONFIG="
-                                                (assoc-ref %build-inputs
-                                                           "mysql")
-                                                "/bin/mysql_config"))
-         #:phases (modify-phases %standard-phases
-                    (add-after 'install 'install-sql
-                      (lambda* (#:key outputs #:allow-other-keys)
-                        (let* ((out (assoc-ref outputs "out"))
-                               (source-sql-dir (string-append (assoc-ref
-                                                               %build-inputs
-                                                               "source")
-                                                              "/data"))
-                               (data-sql-dir (string-append out "/data")))
-                          ;; we don't really care about the SQL archives
-                          (delete-file-recursively (string-append
-                                                    source-sql-dir
-                                                    "/sql/archive"))
-                          (copy-recursively source-sql-dir data-sql-dir) #t)))
-                    (add-after 'install 'init-config
-                      (lambda* (#:key outputs inputs #:allow-other-keys)
-                        (let* ((out (assoc-ref outputs "out"))
-                               (auth-conf (string-append out
-                                           "/etc/authserver.conf.dist"))
-                               (world-conf (string-append out
-                                            "/etc/worldserver.conf.dist"))
-                               (client-data-path (assoc-ref inputs
-                                                  "wowgaming-client-data"))
-                               (mysql-exe (string-append (assoc-ref
-                                                          %build-inputs
-                                                          "mysql")
-                                                         "/bin/mysql")))
-                          (substitute* world-conf
-                            (("^DataDir.*")
-                             (string-append "DataDir = \"" client-data-path
-                                            "\"")))
-                          (substitute* (list auth-conf world-conf)
-                            (("^SourceDirectory.*")
-                             (string-append "SourceDirectory = \"" out "\""))
-                            (("^MySQLExecutable.*")
-                             (string-append "MySQLExecutable = \"" mysql-exe
-                                            "\""))) #t))))))
-      (home-page "https://www.azerothcore.org/")
-      (synopsis "Modular World of Warcraft: Wrath of the Lich King Emulator")
-      (description
-       "AzerothCore is an open-source game-server application for World of Warcraft, 
+  (package
+    (name "azerothcore-wotlk")
+    (version "9.230806")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     ;; AzerothCore doesn't tag things very often. 
+                     ;; I have this fork on a timer to sync the repo and 
+                     ;; tag with the database version and date
+                    (url "https://github.com/michaeldelago/azerothcore-wotlk")
+                    (commit (string-append "v" version))))
+              (sha256
+               (base32
+                "01h0jhiv1mqxq1gnvvpd3k5pclz6finxi3kg7ws16nixjdlycxwg"))
+              (file-name (git-file-name name version))))
+    (build-system cmake-build-system)
+    (outputs '("out"))
+    (propagated-inputs (list mysql wowgaming-client-data))
+    (native-inputs `(("git" ,git)
+                     ("lbzip2" ,lbzip2)
+                     ("boost" ,boost)
+                     ("readline" ,readline)
+                     ("openssl-3.0" ,openssl-3.0)
+                     ("ncurses" ,ncurses)
+                     ("clang" ,clang)
+                     ("libtool" ,libtool)
+                     ("zlib" ,zlib)
+                     ("gcc-toolchain" ,gcc-toolchain)
+                     ("glibc-locales" ,glibc-locales)
+                     ("python-wrapper" ,python-wrapper)))
+    (arguments
+     `(#:tests? #f
+       #:configure-flags (list "-DWITH_WARNINGS=1"
+                               ;; Tools don't need to be built since
+                               "-DTOOLS_BUILD=none"
+                               "-DSCRIPTS=static"
+                               "-DMODULES=dynamic"
+                               "-DCMAKE_C_COMPILER=clang"
+                               "-DCMAKE_CXX_COMPILER=clang++"
+                               (string-append "-DMYSQL_CONFIG="
+                                              (assoc-ref %build-inputs "mysql")
+                                              "/bin/mysql_config"))
+       #:phases (modify-phases %standard-phases
+                  (add-after 'install 'install-sql
+                    (lambda* (#:key outputs #:allow-other-keys)
+                      (let* ((out (assoc-ref outputs "out"))
+                             (source-sql-dir (string-append (assoc-ref
+                                                             %build-inputs
+                                                             "source") "/data"))
+                             (data-sql-dir (string-append out "/data")))
+                        ;; we don't really care about the SQL archives
+                        (delete-file-recursively (string-append source-sql-dir
+                                                  "/sql/archive"))
+                        (copy-recursively source-sql-dir data-sql-dir) #t)))
+                  (add-after 'install 'init-config
+                    (lambda* (#:key outputs inputs #:allow-other-keys)
+                      (let* ((out (assoc-ref outputs "out"))
+                             (auth-conf (string-append out
+                                         "/etc/authserver.conf.dist"))
+                             (world-conf (string-append out
+                                          "/etc/worldserver.conf.dist"))
+                             (client-data-path (assoc-ref inputs
+                                                "wowgaming-client-data"))
+                             (mysql-exe (string-append (assoc-ref
+                                                        %build-inputs "mysql")
+                                                       "/bin/mysql")))
+                        (substitute* world-conf
+                          (("^DataDir.*")
+                           (string-append "DataDir = \"" client-data-path "\"")))
+                        (substitute* (list auth-conf world-conf)
+                          (("^SourceDirectory.*")
+                           (string-append "SourceDirectory = \"" out "\""))
+                          (("^MySQLExecutable.*")
+                           (string-append "MySQLExecutable = \"" mysql-exe
+                                          "\""))) #t))))))
+    (home-page "https://www.azerothcore.org/")
+    (synopsis "Modular World of Warcraft: Wrath of the Lich King Emulator")
+    (description
+     "AzerothCore is an open-source game-server application for World of Warcraft, 
 supporting the 3.3.5a game version.")
-      (license license:gpl2))))
+    (license license:gpl2)))
 
 (define-public wowgaming-client-data
   (package

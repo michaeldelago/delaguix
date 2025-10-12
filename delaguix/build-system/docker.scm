@@ -43,7 +43,8 @@
                  (base-image (or (getenv "BASE_IMAGE") "alpine:latest"))
                  (dockerfile-path (getenv "DOCKERFILE_PATH"))
                  (container-dir (string-append output "/container"))
-                 (dockerfile (string-append container-dir "/Dockerfile")))
+                 (dockerfile (string-append container-dir "/Dockerfile"))
+                 (native-inputs (getenv "NATIVE_INPUTS")))
             ;; Create container directory structure
             (mkdir-p container-dir)
             
@@ -59,6 +60,11 @@
                     (format port "WORKDIR /app~%")
                     (format port "COPY . /app~%")
                     (format port "CMD [\"/bin/sh\"]~%"))))
+            
+            ;; Handle native inputs using guix pack
+            (when native-inputs
+              (let ((pack-command (string-append "guix pack -n " native-inputs " -f docker " container-dir)))
+                (system* "sh" "-c" pack-command)))
             
             ;; Build the container image
             (let ((build-command (string-append "docker build -t " image-name ":" image-tag " " container-dir)))

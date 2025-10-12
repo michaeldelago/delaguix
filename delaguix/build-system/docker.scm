@@ -44,10 +44,14 @@
                  (dockerfile-path (getenv "DOCKERFILE_PATH"))
                  (container-dir (string-append output "/container"))
                  (dockerfile (string-append container-dir "/Dockerfile"))
-                 (native-inputs (getenv "NATIVE_INPUTS")))
+                 ;; Get native inputs from the package inputs
+                 (native-inputs (filter (lambda (input)
+                                          (and (package? input)
+                                               (package-native-inputs input)))
+                                        (package-inputs (getenv "PACKAGE_NAME")))))
             ;; Create container directory structure
             (mkdir-p container-dir)
-            
+
             ;; Use provided Dockerfile or create a default one
             (if dockerfile-path
                 ;; Copy the provided Dockerfile
@@ -60,20 +64,20 @@
                     (format port "WORKDIR /app~%")
                     (format port "COPY . /app~%")
                     (format port "CMD [\"/bin/sh\"]~%"))))
-            
+
             ;; Handle native inputs using guix pack
             (when native-inputs
-              (let ((pack-command (string-append "guix pack -n " native-inputs " -f docker " container-dir)))
+              (let ((pack-command (string-append "guix pack -n " (string-join (map package-name native-inputs) " ") " -f docker " container-dir)))
                 (system* "sh" "-c" pack-command)))
-            
+
             ;; Build the container image
             (let ((build-command (string-append "docker build -t " image-name ":" image-tag " " container-dir)))
               (system* "sh" "-c" build-command))
-            
+
             ;; Export the container
             (let ((export-command (string-append "docker save " image-name ":" image-tag " > " output "/container.tar")))
               (system* "sh" "-c" export-command))
-            
+
             ;; Return the output path
             output)))))
      #:outputs '("out")

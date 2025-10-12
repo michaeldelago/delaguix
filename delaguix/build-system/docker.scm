@@ -41,19 +41,24 @@
                  (image-name (or (getenv "IMAGE_NAME") "my-container"))
                  (image-tag (or (getenv "IMAGE_TAG") "latest"))
                  (base-image (or (getenv "BASE_IMAGE") "alpine:latest"))
+                 (dockerfile-path (getenv "DOCKERFILE_PATH"))
                  (container-dir (string-append output "/container"))
                  (dockerfile (string-append container-dir "/Dockerfile")))
             ;; Create container directory structure
             (mkdir-p container-dir)
             
-            ;; Create a simple Dockerfile
-            (call-with-output-file dockerfile
-              (lambda (port)
-                (format port "FROM ~a~%" base-image)
-                (format port "LABEL maintainer=\"Guix Docker Builder\"~%")
-                (format port "WORKDIR /app~%")
-                (format port "COPY . /app~%")
-                (format port "CMD [\"/bin/sh\"]~%")))
+            ;; Use provided Dockerfile or create a default one
+            (if dockerfile-path
+                ;; Copy the provided Dockerfile
+                (copy-file dockerfile-path dockerfile)
+                ;; Create a default Dockerfile
+                (call-with-output-file dockerfile
+                  (lambda (port)
+                    (format port "FROM ~a~%" base-image)
+                    (format port "LABEL maintainer=\"Guix Docker Builder\"~%")
+                    (format port "WORKDIR /app~%")
+                    (format port "COPY . /app~%")
+                    (format port "CMD [\"/bin/sh\"]~%"))))
             
             ;; Build the container image
             (let ((build-command (string-append "docker build -t " image-name ":" image-tag " " container-dir)))
@@ -78,6 +83,7 @@
                       #:base-image base-image
                       #:image-name image-name
                       #:image-tag image-tag
+                      #:dockerfile dockerfile
                       #:inputs inputs
                       #:phases phases
                       #:outputs outputs
@@ -88,6 +94,7 @@
 BASE-IMAGE is the base image to use (default: \"alpine:latest\").
 IMAGE-NAME is the name of the resulting image (default: \"my-container\").
 IMAGE-TAG is the tag for the resulting image (default: \"latest\").
+DOCKERFILE is the path to a custom Dockerfile to use (optional).
 INPUTS are the build inputs.
 PHASES are the build phases.
 OUTPUTS are the build outputs.
@@ -100,6 +107,7 @@ PROPERTIES are the build properties."
                         #:base-image base-image
                         #:image-name image-name
                         #:image-tag image-tag
+                        #:dockerfile dockerfile
                         #:inputs inputs
                         #:phases phases
                         #:outputs outputs

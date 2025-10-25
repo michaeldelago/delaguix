@@ -1,4 +1,4 @@
-(define-module (bun)
+(define-module (delaguix packages bun)
   #:use-module (gnu packages)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages development-tools)
@@ -51,10 +51,7 @@
        ("libdrm" ,libdrm)
        ("xorg.libxshmfence" ,xorg.libXshmfence)
        ("gdk-pixbuf" ,gdk-pixbuf)))
-    (inputs
-     `(
-       ; macOS-specific dependencies if applicable
-       )))
+    (inputs `())
     (synopsis "Bun is a fast all-in-one JavaScript runtime.")
     (description "Bun is designed to be a high-performance alternative to Node.js, offering a more efficient and streamlined experience for JavaScript applications. This package includes the necessary build tools and dependencies as specified in the Nix flake configuration.")
     (home-page "https://bun.sh") ; Replace with actual home page

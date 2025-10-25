@@ -13,16 +13,21 @@
 (define-public bun
   (package
     (name "bun")
-    (version "1.0") ; Replace with the appropriate version
-    (source #f) ; Placeholder for source, replace with actual source URI
+    (version "1.3.1") ; Replace with the appropriate version
+    ;; git url https://github.com/oven-sh/bun
+    ;; tag is "bun-v1.3.1"
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/oven-sh/bun")
+                    (commit (string-append "bun-v" version))))
+              (file-name (string-append name "-" version "-checkout"))
+              (sha256
+               (base32 "1234567890123456789012345678901234567890123456789012"))))
     (build-system cmake-build-system)
     (arguments
      '(#:configure-flags
-       (list "--enable-shared" "--prefix=" (assoc-ref %outputs "out"))
-       #:make-flags
-       (list "VERBOSE=1")
-       #:test-flags
-       (list "MAKEFLAGS=-j2")))
+       (list "--enable-shared" "--prefix=" (assoc-ref %outputs "out"))))
     (native-inputs
      `(("llvm-19" ,llvm-19)
        ("clang-19" ,clang-19)
